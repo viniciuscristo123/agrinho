@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo do Fazendeiro Pac-Man</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #000;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        canvas {
+            background-color: #000;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const gridSize = 20;
+        const gridWidth = canvas.width / gridSize;
+        const gridHeight = canvas.height / gridSize;
+
+        let player = {
+            x: 10,
+            y: 10,
+            radius: 10,
+            color: '#ffff00',
+            speed: 1
+        };
+
+        let ghosts = [
+            { x: 5, y: 5, color: '#ff0000', speed: 1, direction: 'right' },
+            { x: 15, y: 5, color: '#ff00ff', speed: 1, direction: 'left' },
+            { x: 10, y: 15, color: '#00ffff', speed: 1, direction: 'up' }
+        ];
+
+        let score = 0;
+        let gameover = false;
+
+        function drawPlayer() {
+            ctx.beginPath();
+            ctx.arc(player.x * gridSize, player.y * gridSize, player.radius, 0, Math.PI * 2);
+            ctx.fillStyle = player.color;
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawGhost(x, y, color) {
+            ctx.beginPath();
+            ctx.arc(x * gridSize, y * gridSize, player.radius, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawScore() {
+            ctx.font = '16px Arial';
+            ctx.fillStyle = '#fff';
+            ctx.fillText('Pontos: ' + score, 10, 20);
+        }
+
+        function moveGhosts() {
+            ghosts.forEach(ghost => {
+                switch (ghost.direction) {
+                    case 'up':
+                        ghost.y -= ghost.speed;
+                        if (ghost.y <= 0) ghost.direction = 'down';
+                        break;
+                    case 'down':
+                        ghost.y += ghost.speed;
+                        if (ghost.y >= gridHeight - 1) ghost.direction = 'up';
+                        break;
+                    case 'left':
+                        ghost.x -= ghost.speed;
+                        if (ghost.x <= 0) ghost.direction = 'right';
+                        break;
+                    case 'right':
+                        ghost.x += ghost.speed;
+                        if (ghost.x >= gridWidth - 1) ghost.direction = 'left';
+                        break;
+                }
+            });
+        }
+
+        function draw() {
+            if (gameover) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawPlayer();
+            ghosts.forEach(ghost => {
+                drawGhost(ghost.x, ghost.y, ghost.color);
+            });
+            drawScore();
+
+            moveGhosts();
+            checkCollision();
+
+            requestAnimationFrame(draw);
+        }
+
+        function checkCollision() {
+            ghosts.forEach(ghost => {
+                let dx = player.x - ghost.x;
+                let dy = player.y - ghost.y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < player.radius + 1) {
+                    gameover = true;
+                    alert('Game Over! Pontuação final: ' + score);
+                    location.reload(); // Recarrega a página para reiniciar o jogo
+                }
+            });
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowUp' && player.y > 0) {
+                player.y -= player.speed;
+            }
+            if (event.key === 'ArrowDown' && player.y < gridHeight - 1) {
+                player.y += player.speed;
+            }
+            if (event.key === 'ArrowLeft' && player.x > 0) {
+                player.x -= player.speed;
+            }
+            if (event.key === 'ArrowRight' && player.x < gridWidth - 1) {
+                player.x += player.speed;
+            }
+        });
+
+        draw(); // Inicia o jogo
+    </script>
+</body>
+</html>
